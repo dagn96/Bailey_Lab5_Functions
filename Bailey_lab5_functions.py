@@ -1,3 +1,7 @@
+import glob
+import numpy as np
+import pandas as pd
+
 def fit_velocity_file(df):
     # Get the site name from the file name
     # site = filename.split('/')[-1].split('_')[0]
@@ -76,13 +80,25 @@ def fit_all_files(folder,pattern,data_type):
             sealvl_rate = fit_tide_gauge(tide)
             sites=np.append(sites,site)
             rates=np.append(rates,sealvl_rate)
-            tide_out_dict = {'site':sites,'rate':rates}
+            #tide_out_dict = {'site': sites,'rate': rates}
+            tide_out_dict['site'].append(site)
+            tide_out_dict['rate'].append(sealvl_rate)
             tide_out_df = pd.DataFrame(data=tide_out_dict)
         return tide_out_df
 
-
-sealvl_df = fit_all_files('Monthly Sea Level Timeseries','*',data_type='TIDE')
-velocity_df = fit_all_files('timeseries','*',data_type='GNSS')
-
-display(sealvl_df)
-display(velocity_df)
+def plot_gnss(gnss_df):
+    gnss_df = fit_all_files(folder_gnss, pattern_gnss, data_type_gnss)
+    lon = gnss_df['longitude']
+    lat = gnss_df['latitude']
+    east = gnss_df['velocity_e']
+    north = gnss_df['velocity_n']
+    up = gnss_df['velocity_u']
+    plt.scatter(lon, lat, c=up, cmap='plasma', marker='o', s=10, label='Up Velocities')
+    plt.quiver(lon, lat, east, north, color='darkred', width=0.005, label='East/North Velocities')
+    cbar = plt.colorbar()
+    cbar.set_label('Up (m)')
+    plt.xlabel('Longitude (°)')
+    plt.ylabel('Latitude (°)')
+    plt.title('GNSS Data Visualization')
+    plt.legend()
+    plt.show()
